@@ -1,0 +1,12 @@
+version: "2"
+sql:
+  - schema: "database/user.sql"
+    queries: "database/user_queries.sql"
+    engine: "postgresql"
+    gen:
+      go:
+        package: "postgresql" # sqlc will write this line aka "package postgresql" at the first line of every generated code
+        out: "internal/interface/postgresql"
+        sql_package: "pgx/v5" # Best practice driver
+        emit_json_tags: true  # Adds json:"id" to struct
+        emit_interface: true  # Useful for mocking/testing
