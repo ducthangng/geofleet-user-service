@@ -8,12 +8,11 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-type User struct {
-	ID          pgtype.UUID        `json:"id"`
-	Fullname    string             `json:"fullname"`
-	Username    string             `json:"username"`
-	Password    string             `json:"password"`
-	Address     string             `json:"address"`
-	Phone       string             `json:"phone"`
-	DateCreated pgtype.Timestamptz `json:"date_created"`
+type UserServiceUser struct {
+	ID          pgtype.UUID
+	Phone       string
+	FullName    string
+	Password    string
+	Address     pgtype.Text
+	DateCreated pgtype.Timestamp
 }

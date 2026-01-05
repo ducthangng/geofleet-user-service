@@ -26,7 +26,7 @@ func (ui *UserUsecaseInteractor) CreateUser(ctx context.Context, dto usecase_dto
 	createdUser usecase_dto.User, err error) {
 
 	// check if user's username is duplicated, if yes then return
-	duplicates, err := ui.UserDataService.GetUserByUsername(ctx, dto.Username)
+	duplicates, err := ui.UserDataService.GetUserByPhone(ctx, dto.Phone)
 	if err != pgx.ErrNoRows && err != nil {
 		return createdUser, err
 	}
@@ -60,7 +60,7 @@ func (ui *UserUsecaseInteractor) GetUser(ctx context.Context, dto usecase_dto.Us
 	result usecase_dto.User, err error) {
 
 	// check if user's username is duplicated, if yes then return
-	currUser, err := ui.UserDataService.GetUserByUsername(ctx, dto.Username)
+	currUser, err := ui.UserDataService.GetUserByPhone(ctx, dto.Phone)
 	if err == pgx.ErrNoRows {
 		return result, errors.New("username or password is not correct 1")
 	}

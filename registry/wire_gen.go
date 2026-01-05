@@ -13,16 +13,13 @@ import (
 
 // Injectors from wire.go:
 
-// InitializeUserService is the "Injector Stub".
-// 1. It defines the Function Signature (what inputs we have, what output we want).
-// 2. It tells Wire which Providers to use via wire.Build.
-func InitializeUserService(ctx context.Context) (*handler.UserRestfulHandler, error) {
+func Initialize(ctx context.Context) (*handler.UserHandler, error) {
 	pool, err := ProvideDBPool(ctx)
 	if err != nil {
 		return nil, err
 	}
 	queries := ProvideRepository(pool)
 	userUsecaseInteractor := ProvideUserUsecase(queries)
-	userRestfulHandler := handler.NewUserRestfulHandler(userUsecaseInteractor)
-	return userRestfulHandler, nil
+	userHandler := handler.NewUserRestfulHandler(userUsecaseInteractor)
+	return userHandler, nil
 }

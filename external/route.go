@@ -1,43 +1,31 @@
 package external
 
-import (
-	"context"
-	"log"
+// func Routing() *gin.Engine {
+// 	gin.SetMode(gin.ReleaseMode)
 
-	"github.com/ducthangng/geofleet/user-service/external/middleware"
-	"github.com/ducthangng/geofleet/user-service/registry"
-	"github.com/gin-gonic/gin"
-)
+// 	r := gin.New()
 
-func Routing() *gin.Engine {
-	gin.SetMode(gin.ReleaseMode)
+// 	r.Use(gin.Recovery(), gin.Logger())
 
-	r := gin.New()
+// 	// middleware
 
-	r.Use(gin.Recovery(), gin.Logger())
+// 	r.Use(middleware.CorsMiddleware())
+// 	r.Use(middleware.JSONWriterMiddleware)
 
-	// middleware
+// 	// userHandler, err := registry.InitializeUserService(context.Background())
+// 	userHandler := handler.NewUserRestfulHandler()
 
-	r.Use(middleware.CorsMiddleware())
-	r.Use(middleware.JSONWriterMiddleware)
+// 	// go check for health
+// 	r.GET("/api/healthz")
 
-	userHandler, err := registry.InitializeUserService(context.Background())
-	if err != nil {
-		// build fail
-		log.Println("build failed")
-		panic(err)
-	}
+// 	r.POST("/api_us/register", userHandler.CreateUserProfile)
+// 	// retrieve the id of the user, require tokens.
 
-	// go check for health
-	r.GET("/api/healthz")
+// 	// login for all users
+// 	// set cookie with JWT token.
+// 	r.POST("/api_us/login", userHandler.Login)
+// 	// create new account (does not duplicated phone)
+// 	r.GET("/api_us/user/me")
 
-	// login for all users
-	// set cookie with JWT token.
-	r.POST("/api/login", userHandler.Login)
-	// create new account (does not duplicated phone)
-	r.POST("/api/register", userHandler.Register)
-	// retrieve the id of the user, require tokens.
-	r.GET("/api/user/me")
-
-	return r
-}
+// 	return r
+// }

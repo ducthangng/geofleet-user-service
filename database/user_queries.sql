@@ -1,38 +1,37 @@
 -- name: CreateUser :one
-INSERT INTO users (
-    fullname, username, password, address, phone
+INSERT INTO user_service.users (
+    full_name, password, address, phone
 ) VALUES (
-    $1, $2, $3, $4, $5
+    $1, $2, $3, $4
 )
 RETURNING *;
 
--- name: Getuser :one
-SELECT * FROM users 
+-- name: GetUser :one
+SELECT * FROM user_service.users 
 WHERE id = $1 LIMIT 1;
 
--- name: GetUserByUsername :one
-SELECT * FROM users
-WHERE username = $1 LIMIT 1;
+-- name: GetUserByPhone :one
+SELECT * FROM user_service.users 
+WHERE phone = $1 LIMIT 1;
 
 -- name: ListUser :many
-SELECT * FROM users
+SELECT * FROM user_service.users
 ORDER BY date_created DESC
 LIMIT $1 OFFSET $2;
 
 -- name: UpdateUser :one
-UPDATE users
+UPDATE user_service.users
 SET 
-    fullname = $2, 
-    username = $3,
-    address = $4
+    full_name = $2, 
+    address = $3
 WHERE id = $1
 RETURNING *;
 
 -- name: UpdatePassword :exec
-UPDATE users
+UPDATE user_service.users
 SET password = $2
 WHERE id = $1;
 
 -- name: DeleteUser :exec
-DELETE FROM users
+DELETE FROM user_service.users
 WHERE id = $1;

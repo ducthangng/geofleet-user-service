@@ -11,13 +11,13 @@ import (
 )
 
 type Querier interface {
-	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
+	CreateUser(ctx context.Context, arg CreateUserParams) (UserServiceUser, error)
 	DeleteUser(ctx context.Context, id pgtype.UUID) error
-	GetUserByUsername(ctx context.Context, username string) (User, error)
-	Getuser(ctx context.Context, id pgtype.UUID) (User, error)
-	ListUser(ctx context.Context, arg ListUserParams) ([]User, error)
+	GetUser(ctx context.Context, id pgtype.UUID) (UserServiceUser, error)
+	GetUserByPhone(ctx context.Context, phone string) (UserServiceUser, error)
+	ListUser(ctx context.Context, arg ListUserParams) ([]UserServiceUser, error)
 	UpdatePassword(ctx context.Context, arg UpdatePasswordParams) error
-	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)
+	UpdateUser(ctx context.Context, arg UpdateUserParams) (UserServiceUser, error)
 }
 
 var _ Querier = (*Queries)(nil)

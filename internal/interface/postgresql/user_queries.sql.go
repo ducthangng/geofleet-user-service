@@ -12,45 +12,42 @@ import (
 )
 
 const createUser = `-- name: CreateUser :one
-INSERT INTO users (
-    fullname, username, password, address, phone
+INSERT INTO user_service.users (
+    full_name, password, address, phone
 ) VALUES (
-    $1, $2, $3, $4, $5
+    $1, $2, $3, $4
 )
-RETURNING id, fullname, username, password, address, phone, date_created
+RETURNING id, phone, full_name, password, address, date_created
 `
 
 type CreateUserParams struct {
-	Fullname string `json:"fullname"`
-	Username string `json:"username"`
-	Password string `json:"password"`
-	Address  string `json:"address"`
-	Phone    string `json:"phone"`
+	FullName string
+	Password string
+	Address  pgtype.Text
+	Phone    string
 }
 
-func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
+func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (UserServiceUser, error) {
 	row := q.db.QueryRow(ctx, createUser,
-		arg.Fullname,
-		arg.Username,
+		arg.FullName,
 		arg.Password,
 		arg.Address,
 		arg.Phone,
 	)
-	var i User
+	var i UserServiceUser
 	err := row.Scan(
 		&i.ID,
-		&i.Fullname,
-		&i.Username,
+		&i.Phone,
+		&i.FullName,
 		&i.Password,
 		&i.Address,
-		&i.Phone,
 		&i.DateCreated,
 	)
 	return i, err
 }
 
 const deleteUser = `-- name: DeleteUser :exec
-DELETE FROM users
+DELETE FROM user_service.users
 WHERE id = $1
 `
 
@@ -59,73 +56,70 @@ func (q *Queries) DeleteUser(ctx context.Context, id pgtype.UUID) error {
 	return err
 }
 
-const getUserByUsername = `-- name: GetUserByUsername :one
-SELECT id, fullname, username, password, address, phone, date_created FROM users
-WHERE username = $1 LIMIT 1
+const getUser = `-- name: GetUser :one
+SELECT id, phone, full_name, password, address, date_created FROM user_service.users 
+WHERE id = $1 LIMIT 1
 `
 
-func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User, error) {
-	row := q.db.QueryRow(ctx, getUserByUsername, username)
-	var i User
+func (q *Queries) GetUser(ctx context.Context, id pgtype.UUID) (UserServiceUser, error) {
+	row := q.db.QueryRow(ctx, getUser, id)
+	var i UserServiceUser
 	err := row.Scan(
 		&i.ID,
-		&i.Fullname,
-		&i.Username,
+		&i.Phone,
+		&i.FullName,
 		&i.Password,
 		&i.Address,
-		&i.Phone,
 		&i.DateCreated,
 	)
 	return i, err
 }
 
-const getuser = `-- name: Getuser :one
-SELECT id, fullname, username, password, address, phone, date_created FROM users 
-WHERE id = $1 LIMIT 1
+const getUserByPhone = `-- name: GetUserByPhone :one
+SELECT id, phone, full_name, password, address, date_created FROM user_service.users 
+WHERE phone = $1 LIMIT 1
 `
 
-func (q *Queries) Getuser(ctx context.Context, id pgtype.UUID) (User, error) {
-	row := q.db.QueryRow(ctx, getuser, id)
-	var i User
+func (q *Queries) GetUserByPhone(ctx context.Context, phone string) (UserServiceUser, error) {
+	row := q.db.QueryRow(ctx, getUserByPhone, phone)
+	var i UserServiceUser
 	err := row.Scan(
 		&i.ID,
-		&i.Fullname,
-		&i.Username,
+		&i.Phone,
+		&i.FullName,
 		&i.Password,
 		&i.Address,
-		&i.Phone,
 		&i.DateCreated,
 	)
 	return i, err
 }
 
 const listUser = `-- name: ListUser :many
-SELECT id, fullname, username, password, address, phone, date_created FROM users
+SELECT id, phone, full_name, password, address, date_created FROM user_service.users
 ORDER BY date_created DESC
 LIMIT $1 OFFSET $2
 `
 
 type ListUserParams struct {
-	Limit  int32 `json:"limit"`
-	Offset int32 `json:"offset"`
+	Limit  int32
+	Offset int32
 }
 
-func (q *Queries) ListUser(ctx context.Context, arg ListUserParams) ([]User, error) {
+func (q *Queries) ListUser(ctx context.Context, arg ListUserParams) ([]UserServiceUser, error) {
 	rows, err := q.db.Query(ctx, listUser, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []User
+	var items []UserServiceUser
 	for rows.Next() {
-		var i User
+		var i UserServiceUser
 		if err := rows.Scan(
 			&i.ID,
-			&i.Fullname,
-			&i.Username,
+			&i.Phone,
+			&i.FullName,
 			&i.Password,
 			&i.Address,
-			&i.Phone,
 			&i.DateCreated,
 		); err != nil {
 			return nil, err
@@ -139,14 +133,14 @@ func (q *Queries) ListUser(ctx context.Context, arg ListUserParams) ([]User, err
 }
 
 const updatePassword = `-- name: UpdatePassword :exec
-UPDATE users
+UPDATE user_service.users
 SET password = $2
 WHERE id = $1
 `
 
 type UpdatePasswordParams struct {
-	ID       pgtype.UUID `json:"id"`
-	Password string      `json:"password"`
+	ID       pgtype.UUID
+	Password string
 }
 
 func (q *Queries) UpdatePassword(ctx context.Context, arg UpdatePasswordParams) error {
@@ -155,37 +149,29 @@ func (q *Queries) UpdatePassword(ctx context.Context, arg UpdatePasswordParams) 
 }
 
 const updateUser = `-- name: UpdateUser :one
-UPDATE users
+UPDATE user_service.users
 SET 
-    fullname = $2, 
-    username = $3,
-    address = $4
+    full_name = $2, 
+    address = $3
 WHERE id = $1
-RETURNING id, fullname, username, password, address, phone, date_created
+RETURNING id, phone, full_name, password, address, date_created
 `
 
 type UpdateUserParams struct {
-	ID       pgtype.UUID `json:"id"`
-	Fullname string      `json:"fullname"`
-	Username string      `json:"username"`
-	Address  string      `json:"address"`
+	ID       pgtype.UUID
+	FullName string
+	Address  pgtype.Text
 }
 
-func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error) {
-	row := q.db.QueryRow(ctx, updateUser,
-		arg.ID,
-		arg.Fullname,
-		arg.Username,
-		arg.Address,
-	)
-	var i User
+func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (UserServiceUser, error) {
+	row := q.db.QueryRow(ctx, updateUser, arg.ID, arg.FullName, arg.Address)
+	var i UserServiceUser
 	err := row.Scan(
 		&i.ID,
-		&i.Fullname,
-		&i.Username,
+		&i.Phone,
+		&i.FullName,
 		&i.Password,
 		&i.Address,
-		&i.Phone,
 		&i.DateCreated,
 	)
 	return i, err

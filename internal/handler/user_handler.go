@@ -1,150 +1,119 @@
 package handler
 
 import (
-	"errors"
+	"context"
 	"log"
-	"net/http"
 
-	"github.com/ducthangng/geofleet/user-service/internal/handler/presenter"
+	pb "github.com/ducthangng/geofleet-proto/user"
 	usecase "github.com/ducthangng/geofleet/user-service/internal/usercase"
 	"github.com/ducthangng/geofleet/user-service/internal/usercase/usecase_dto"
 	"github.com/ducthangng/geofleet/user-service/service/copier"
-	jwtService "github.com/ducthangng/geofleet/user-service/service/jwt"
-	"github.com/ducthangng/geofleet/user-service/singleton"
 	"github.com/gin-gonic/gin"
-	"github.com/go-playground/validator/v10"
 )
 
-type UserRestfulHandler struct {
-	BaseHandler
+type UserHandler struct {
+	pb.UnimplementedUserServiceServer
 	UserUsecase usecase.UserUsecaseService
 }
 
-func NewUserRestfulHandler(usecase usecase.UserUsecaseService) *UserRestfulHandler {
-	return &UserRestfulHandler{
-		UserUsecase: usecase,
+func NewUserRestfulHandler(userUsecase usecase.UserUsecaseService) *UserHandler {
+	return &UserHandler{
+		UserUsecase: userUsecase,
 	}
 }
 
-func (u *UserRestfulHandler) Register(ctx *gin.Context) {
+func (u *UserHandler) CreateUserProfile(ctx context.Context, data *pb.UserCreationRequest) (*pb.UserCreationResponse, error) {
 	var (
-		req presenter.User
 		dto usecase_dto.User
-		res usecase_dto.User
+		res *pb.UserCreationResponse
 		err error
 	)
 
-	defer func() {
-		if err != nil {
-			u.SetError(ctx, err)
-		}
-	}()
+	copier.MustCopy(&dto, data)
+	log.Println("user-service receive: ", dto)
 
-	if err = ctx.ShouldBindJSON(&req); err != nil {
-		return
-	}
-
-	validate := validator.New()
-	if err = validate.Struct(req); err != nil {
-		return
-	}
-
-	copier.MustCopy(&dto, &req)
-	res, err = u.UserUsecase.CreateUser(ctx, dto)
+	dto, err = u.UserUsecase.CreateUser(ctx, dto)
 	if err != nil {
-		return
+		log.Println("user-service error: ", err)
+		return nil, err
 	}
 
-	u.SetData(ctx, res)
-	u.SetMeta(ctx, presenter.MetaResponse{
-		Code: http.StatusCreated,
-	})
+	res = &pb.UserCreationResponse{
+		UserId:       dto.ID,
+		IsDuplicated: 0,
+	}
+
+	return res, nil
 }
 
-func (u *UserRestfulHandler) Login(ctx *gin.Context) {
-	var (
-		req      presenter.User
-		dto      usecase_dto.User
-		res      usecase_dto.User
-		jwtToken string
-		err      error
-	)
+func (u *UserHandler) Register(ctx *gin.Context) {
 
-	defer func() {
-		if err != nil {
-			u.SetError(ctx, err)
-		}
-	}()
-
-	if err = ctx.ShouldBindJSON(&req); err != nil {
-		return
-	}
-
-	if (!req.VerifyUsername()) || (!req.VerifyPassword()) {
-		err = errors.New("username or password is not correct 3")
-		return
-	}
-
-	copier.MustCopy(&dto, &req)
-	res, err = u.UserUsecase.GetUser(ctx, dto)
-	if err != nil {
-		return
-	}
-
-	if len(res.ID) == 0 {
-		err = errors.New("username or password is not correct 4")
-		return
-	}
-
-	// set credentials
-	jwtToken, err = jwtService.GenerateToken(res.ID, res.Username, "")
-	if err != nil {
-		log.Println("here 1")
-		return
-	}
-
-	cfg := singleton.GetConfig().Cookie
-
-	// set cookie
-	ctx.SetCookie(cfg.CookieName, jwtToken, cfg.MaxAge, "/", cfg.CookieDomain, cfg.CookieSecure, cfg.CookieHTTPOnly)
-
-	u.SetData(ctx, res)
-	u.SetMeta(ctx, presenter.MetaResponse{
-		Code: http.StatusCreated,
-	})
 }
 
-func (u *UserRestfulHandler) GetMyself(ctx *gin.Context) {
-	var (
-		req presenter.User
-		dto usecase_dto.User
-		res usecase_dto.User
-		err error
-	)
+// func (u *UserHandler) Login(ctx *gin.Context) {
+// 	var (
+// 		req      presenter.User
+// 		dto      usecase_dto.User
+// 		res      usecase_dto.User
+// 		jwtToken string
+// 		err      error
+// 	)
 
-	defer func() {
-		if err != nil {
-			u.SetError(ctx, err)
-		}
-	}()
+// 	if err = ctx.ShouldBindJSON(&req); err != nil {
+// 		return
+// 	}
 
-	if err = ctx.ShouldBindJSON(&req); err != nil {
-		return
-	}
+// 	if (!req.VerifyUsername()) || (!req.VerifyPassword()) {
+// 		err = errors.New("username or password is not correct 3")
+// 		return
+// 	}
 
-	validate := validator.New()
-	if err = validate.Struct(req); err != nil {
-		return
-	}
+// 	copier.MustCopy(&dto, &req)
+// 	// res, err = u.UserUsecase.GetUser(ctx, dto)
+// 	// if err != nil {
+// 	// 	return
+// 	// }
 
-	copier.MustCopy(&dto, &req)
-	res, err = u.UserUsecase.CreateUser(ctx, dto)
-	if err != nil {
-		return
-	}
+// 	if len(res.ID) == 0 {
+// 		err = errors.New("username or password is not correct 4")
+// 		return
+// 	}
 
-	u.SetData(ctx, res)
-	u.SetMeta(ctx, presenter.MetaResponse{
-		Code: http.StatusCreated,
-	})
-}
+// 	// set credentials
+// 	jwtToken, err = jwtService.GenerateToken(res.ID, res.Username, "")
+// 	if err != nil {
+// 		log.Println("here 1")
+// 		return
+// 	}
+
+// 	cfg := singleton.GetConfig().Cookie
+
+// 	// set cookie
+// 	ctx.SetCookie(cfg.CookieName, jwtToken, cfg.MaxAge, "/", cfg.CookieDomain, cfg.CookieSecure, cfg.CookieHTTPOnly)
+// }
+
+// func (u *UserHandler) GetMyself(ctx *gin.Context) {
+// 	var (
+// 		req presenter.User
+// 		dto usecase_dto.User
+// 		res usecase_dto.User
+// 		err error
+// 	)
+
+// 	if err = ctx.ShouldBindJSON(&req); err != nil {
+// 		return
+// 	}
+
+// 	validate := validator.New()
+// 	if err = validate.Struct(req); err != nil {
+// 		return
+// 	}
+
+// 	copier.MustCopy(&dto, &req)
+// 	// res, err = u.UserUsecase.CreateUser(ctx, dto)
+// 	// if err != nil {
+// 	// 	return
+// 	// }
+
+// 	log.Println(res)
+// }

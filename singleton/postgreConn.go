@@ -80,6 +80,17 @@ func (db *DBConnection) Connect(ctx context.Context) error {
 	// Append query params to DSN
 	fullDSN := connectionString + "?" + q.Encode()
 
+	// config, err := pgxpool.ParseConfig(fullDSN)
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+
+	// // Thiết lập lệnh SQL sẽ chạy ngay sau khi kết nối được tạo
+	// config.AfterConnect = func(ctx context.Context, conn *pgx.Conn) error {
+	// 	_, err := conn.Exec(ctx, "SET search_path TO user_service, public")
+	// 	return err
+	// }
+
 	pool, err := pgxpool.New(ctx, fullDSN)
 	if err != nil {
 		return (errors.New("error connect to pool with error: " + err.Error()))

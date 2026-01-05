@@ -12,13 +12,17 @@ import (
 
 type ServerConfig struct {
 	ServerHost        string `mapstructure:"SERVER_HOST"`
-	Port              string `mapstructure:"PORT"`
+	ServiceName       string `mapstructure:"SERVICE_NAME"`
+	ServiceID         string `mapstructure:"SERVICE_ID"`
+	Port              int    `mapstructure:"PORT"`
+	ConsulPort        int    `mapstructure:"CONSUL_PORT"`
 	ReadTimeout       int    `mapstructure:"READ_TIMEOUT"`
 	ReadHeaderTimeout int    `mapstructure:"READ_HEADER_TIMEOUT"`
 	WriteTimeout      int    `mapstructure:"WRITE_TIMEOUT"`
 	IdleTimeout       int    `mapstructure:"IDLE_TIMEOUT"`
 	MaxHeaderBytes    int    `mapstructure:"MAX_HEADER_BYTES"`
 	HTTPDomain        string `mapstructure:"DOMAIN"`
+	Env               string `mapstructure:"ENV"`
 }
 
 type DatabaseConfig struct {
