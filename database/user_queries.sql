@@ -1,8 +1,8 @@
 -- name: CreateUser :one
 INSERT INTO user_service.users (
-    full_name, password, address, phone
+    full_name, password, address, phone, email, role
 ) VALUES (
-    $1, $2, $3, $4
+    $1, $2, $3, $4, $5, $6
 )
 RETURNING *;
 
@@ -23,7 +23,9 @@ LIMIT $1 OFFSET $2;
 UPDATE user_service.users
 SET 
     full_name = $2, 
-    address = $3
+    address = $3, 
+    role = $4,
+    email = $5
 WHERE id = $1
 RETURNING *;
 

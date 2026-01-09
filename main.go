@@ -9,7 +9,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	pb "github.com/ducthangng/geofleet-proto/user"
+	identity_v1 "github.com/ducthangng/geofleet-proto/gen/go/identity/v1"
 	"github.com/ducthangng/geofleet/user-service/registry"
 	"github.com/ducthangng/geofleet/user-service/singleton"
 	"google.golang.org/grpc"
@@ -49,7 +49,7 @@ func main() {
 		return
 	}
 
-	pb.RegisterUserServiceServer(s, userHandler)
+	identity_v1.RegisterUserServiceServer(s, userHandler)
 
 	// 3. Đăng ký với Consul
 	err = singleton.RegisterWithConsul(cfg.Server.ServiceID, cfg.Server.ServiceName, cfg.Server.Port)

@@ -13,6 +13,8 @@ type UserServiceUser struct {
 	Phone       string
 	FullName    string
 	Password    string
+	Email       string
+	Role        int32
 	Address     pgtype.Text
 	DateCreated pgtype.Timestamp
 }

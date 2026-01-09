@@ -4,15 +4,13 @@ import (
 	"context"
 	"log"
 
-	pb "github.com/ducthangng/geofleet-proto/user"
+	identity_v1 "github.com/ducthangng/geofleet-proto/gen/go/identity/v1"
 	usecase "github.com/ducthangng/geofleet/user-service/internal/usercase"
 	"github.com/ducthangng/geofleet/user-service/internal/usercase/usecase_dto"
-	"github.com/ducthangng/geofleet/user-service/service/copier"
-	"github.com/gin-gonic/gin"
 )
 
 type UserHandler struct {
-	pb.UnimplementedUserServiceServer
+	identity_v1.UnimplementedUserServiceServer
 	UserUsecase usecase.UserUsecaseService
 }
 
@@ -22,98 +20,44 @@ func NewUserRestfulHandler(userUsecase usecase.UserUsecaseService) *UserHandler 
 	}
 }
 
-func (u *UserHandler) CreateUserProfile(ctx context.Context, data *pb.UserCreationRequest) (*pb.UserCreationResponse, error) {
+func (u *UserHandler) CreateUserProfile(ctx context.Context, data *identity_v1.CreateUserProfileRequest) (*identity_v1.CreateUserProfileResponse, error) {
 	var (
 		dto usecase_dto.User
-		res *pb.UserCreationResponse
+		res *identity_v1.CreateUserProfileResponse
 		err error
 	)
 
-	copier.MustCopy(&dto, data)
-	log.Println("user-service receive: ", dto)
+	dto = usecase_dto.User{
+		Fullname: data.Fullname,
+		Password: data.Password.Value,
+		Email:    data.Email,
+		Phone:    data.Phone,
+		Address:  data.Address,
+	}
 
+	log.Println("user-service receive: ", dto)
 	dto, err = u.UserUsecase.CreateUser(ctx, dto)
 	if err != nil {
 		log.Println("user-service error: ", err)
 		return nil, err
 	}
 
-	res = &pb.UserCreationResponse{
-		UserId:       dto.ID,
-		IsDuplicated: 0,
+	res = &identity_v1.CreateUserProfileResponse{
+		UserId: dto.ID,
 	}
 
 	return res, nil
 }
 
-func (u *UserHandler) Register(ctx *gin.Context) {
+func (u *UserHandler) CheckDuplicatedPhone(context.Context, *identity_v1.CheckDuplicatedPhoneRequest) (*identity_v1.CheckDuplicatedPhoneResponse, error) {
 
+	return nil, nil
 }
 
-// func (u *UserHandler) Login(ctx *gin.Context) {
-// 	var (
-// 		req      presenter.User
-// 		dto      usecase_dto.User
-// 		res      usecase_dto.User
-// 		jwtToken string
-// 		err      error
-// 	)
+func (u *UserHandler) GetUserProfile(context.Context, *identity_v1.GetUserProfileRequest) (*identity_v1.GetUserProfileResponse, error) {
+	return nil, nil
+}
 
-// 	if err = ctx.ShouldBindJSON(&req); err != nil {
-// 		return
-// 	}
-
-// 	if (!req.VerifyUsername()) || (!req.VerifyPassword()) {
-// 		err = errors.New("username or password is not correct 3")
-// 		return
-// 	}
-
-// 	copier.MustCopy(&dto, &req)
-// 	// res, err = u.UserUsecase.GetUser(ctx, dto)
-// 	// if err != nil {
-// 	// 	return
-// 	// }
-
-// 	if len(res.ID) == 0 {
-// 		err = errors.New("username or password is not correct 4")
-// 		return
-// 	}
-
-// 	// set credentials
-// 	jwtToken, err = jwtService.GenerateToken(res.ID, res.Username, "")
-// 	if err != nil {
-// 		log.Println("here 1")
-// 		return
-// 	}
-
-// 	cfg := singleton.GetConfig().Cookie
-
-// 	// set cookie
-// 	ctx.SetCookie(cfg.CookieName, jwtToken, cfg.MaxAge, "/", cfg.CookieDomain, cfg.CookieSecure, cfg.CookieHTTPOnly)
-// }
-
-// func (u *UserHandler) GetMyself(ctx *gin.Context) {
-// 	var (
-// 		req presenter.User
-// 		dto usecase_dto.User
-// 		res usecase_dto.User
-// 		err error
-// 	)
-
-// 	if err = ctx.ShouldBindJSON(&req); err != nil {
-// 		return
-// 	}
-
-// 	validate := validator.New()
-// 	if err = validate.Struct(req); err != nil {
-// 		return
-// 	}
-
-// 	copier.MustCopy(&dto, &req)
-// 	// res, err = u.UserUsecase.CreateUser(ctx, dto)
-// 	// if err != nil {
-// 	// 	return
-// 	// }
-
-// 	log.Println(res)
-// }
+func (u *UserHandler) Login(context.Context, *identity_v1.LoginRequest) (*identity_v1.LoginResponse, error) {
+	return nil, nil
+}

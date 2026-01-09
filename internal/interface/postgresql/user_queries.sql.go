@@ -13,11 +13,11 @@ import (
 
 const createUser = `-- name: CreateUser :one
 INSERT INTO user_service.users (
-    full_name, password, address, phone
+    full_name, password, address, phone, email, role
 ) VALUES (
-    $1, $2, $3, $4
+    $1, $2, $3, $4, $5, $6
 )
-RETURNING id, phone, full_name, password, address, date_created
+RETURNING id, phone, full_name, password, email, role, address, date_created
 `
 
 type CreateUserParams struct {
@@ -25,6 +25,8 @@ type CreateUserParams struct {
 	Password string
 	Address  pgtype.Text
 	Phone    string
+	Email    string
+	Role     int32
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (UserServiceUser, error) {
@@ -33,6 +35,8 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (UserSer
 		arg.Password,
 		arg.Address,
 		arg.Phone,
+		arg.Email,
+		arg.Role,
 	)
 	var i UserServiceUser
 	err := row.Scan(
@@ -40,6 +44,8 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (UserSer
 		&i.Phone,
 		&i.FullName,
 		&i.Password,
+		&i.Email,
+		&i.Role,
 		&i.Address,
 		&i.DateCreated,
 	)
@@ -57,7 +63,7 @@ func (q *Queries) DeleteUser(ctx context.Context, id pgtype.UUID) error {
 }
 
 const getUser = `-- name: GetUser :one
-SELECT id, phone, full_name, password, address, date_created FROM user_service.users 
+SELECT id, phone, full_name, password, email, role, address, date_created FROM user_service.users 
 WHERE id = $1 LIMIT 1
 `
 
@@ -69,6 +75,8 @@ func (q *Queries) GetUser(ctx context.Context, id pgtype.UUID) (UserServiceUser,
 		&i.Phone,
 		&i.FullName,
 		&i.Password,
+		&i.Email,
+		&i.Role,
 		&i.Address,
 		&i.DateCreated,
 	)
@@ -76,7 +84,7 @@ func (q *Queries) GetUser(ctx context.Context, id pgtype.UUID) (UserServiceUser,
 }
 
 const getUserByPhone = `-- name: GetUserByPhone :one
-SELECT id, phone, full_name, password, address, date_created FROM user_service.users 
+SELECT id, phone, full_name, password, email, role, address, date_created FROM user_service.users 
 WHERE phone = $1 LIMIT 1
 `
 
@@ -88,6 +96,8 @@ func (q *Queries) GetUserByPhone(ctx context.Context, phone string) (UserService
 		&i.Phone,
 		&i.FullName,
 		&i.Password,
+		&i.Email,
+		&i.Role,
 		&i.Address,
 		&i.DateCreated,
 	)
@@ -95,7 +105,7 @@ func (q *Queries) GetUserByPhone(ctx context.Context, phone string) (UserService
 }
 
 const listUser = `-- name: ListUser :many
-SELECT id, phone, full_name, password, address, date_created FROM user_service.users
+SELECT id, phone, full_name, password, email, role, address, date_created FROM user_service.users
 ORDER BY date_created DESC
 LIMIT $1 OFFSET $2
 `
@@ -119,6 +129,8 @@ func (q *Queries) ListUser(ctx context.Context, arg ListUserParams) ([]UserServi
 			&i.Phone,
 			&i.FullName,
 			&i.Password,
+			&i.Email,
+			&i.Role,
 			&i.Address,
 			&i.DateCreated,
 		); err != nil {
@@ -152,25 +164,37 @@ const updateUser = `-- name: UpdateUser :one
 UPDATE user_service.users
 SET 
     full_name = $2, 
-    address = $3
+    address = $3, 
+    role = $4,
+    email = $5
 WHERE id = $1
-RETURNING id, phone, full_name, password, address, date_created
+RETURNING id, phone, full_name, password, email, role, address, date_created
 `
 
 type UpdateUserParams struct {
 	ID       pgtype.UUID
 	FullName string
 	Address  pgtype.Text
+	Role     int32
+	Email    string
 }
 
 func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (UserServiceUser, error) {
-	row := q.db.QueryRow(ctx, updateUser, arg.ID, arg.FullName, arg.Address)
+	row := q.db.QueryRow(ctx, updateUser,
+		arg.ID,
+		arg.FullName,
+		arg.Address,
+		arg.Role,
+		arg.Email,
+	)
 	var i UserServiceUser
 	err := row.Scan(
 		&i.ID,
 		&i.Phone,
 		&i.FullName,
 		&i.Password,
+		&i.Email,
+		&i.Role,
 		&i.Address,
 		&i.DateCreated,
 	)
