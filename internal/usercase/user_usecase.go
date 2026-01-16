@@ -3,7 +3,6 @@ package usecase
 import (
 	"context"
 	"errors"
-	"log"
 
 	"github.com/ducthangng/geofleet/user-service/internal/interface/postgresql"
 	"github.com/ducthangng/geofleet/user-service/internal/usercase/usecase_dto"
@@ -56,7 +55,7 @@ func (ui *UserUsecaseInteractor) CreateUser(ctx context.Context, dto usecase_dto
 	return
 }
 
-func (ui *UserUsecaseInteractor) GetUser(ctx context.Context, dto usecase_dto.User) (
+func (ui *UserUsecaseInteractor) Login(ctx context.Context, dto usecase_dto.User) (
 	result usecase_dto.User, err error) {
 
 	// check if user's username is duplicated, if yes then return
@@ -70,8 +69,6 @@ func (ui *UserUsecaseInteractor) GetUser(ctx context.Context, dto usecase_dto.Us
 	}
 
 	check := encoder.CheckPasswordHash(dto.Password, currUser.Password)
-	log.Println("password: ", dto.Password)
-	log.Println("hashed: ", currUser.Password)
 	if !check {
 		return result, errors.New("username or password is not correct 2")
 	}

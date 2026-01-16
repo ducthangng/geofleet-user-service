@@ -9,6 +9,6 @@ import (
 type UserUsecaseService interface {
 	CreateUser(ctx context.Context, dto usecase_dto.User) (
 		createdUser usecase_dto.User, err error)
-	GetUser(ctx context.Context, dto usecase_dto.User) (
+	Login(ctx context.Context, dto usecase_dto.User) (
 		result usecase_dto.User, err error)
 }
