@@ -7,6 +7,7 @@ import (
 	identity_v1 "github.com/ducthangng/geofleet-proto/gen/go/identity/v1"
 	usecase "github.com/ducthangng/geofleet/user-service/internal/usercase"
 	"github.com/ducthangng/geofleet/user-service/internal/usercase/usecase_dto"
+	"github.com/ducthangng/geofleet/user-service/service/copier"
 	"github.com/ducthangng/geofleet/user-service/service/domainerr"
 )
 
@@ -84,16 +85,24 @@ func (u *UserHandler) Login(ctx context.Context, data *identity_v1.LoginRequest)
 
 	result, err = u.UserUsecase.Login(ctx, dto)
 	if err != nil {
+		log.Println("found er: ", err)
 		return res, err
 	}
 
-	res.User = &identity_v1.GetUserProfileResponse{
+	newUser := &identity_v1.GetUserProfileResponse{
 		UserId:   result.ID,
 		Fullname: result.Fullname,
 		Phone:    result.Phone,
 		Email:    result.Email,
 		Role:     identity_v1.UserRole(result.Role),
 	}
+
+	res = &identity_v1.LoginResponse{}
+	res.User = &identity_v1.GetUserProfileResponse{}
+
+	copier.MustCopy(res.User, newUser)
+
+	log.Println("found: ", res.User)
 
 	return res, nil
 }

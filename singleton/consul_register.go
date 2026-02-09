@@ -31,12 +31,6 @@ func RegisterWithConsul(serviceID string, serviceName string, port int) error {
 		return err
 	}
 
-	// address := "127.0.0.1" // docker
-	// if cfg.Server.Env == "dev" {
-	// 	// QUAN TRỌNG: Bảo Consul gọi ngược ra Mac Host
-	// 	address = "host.docker.internal"
-	// }
-
 	address := getLocalIP()
 	log.Println("connecting to address: ", address)
 

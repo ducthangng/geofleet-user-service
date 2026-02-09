@@ -52,6 +52,7 @@ func main() {
 	identity_v1.RegisterUserServiceServer(s, userHandler)
 
 	// 3. Đăng ký với Consul
+	log.Println("----", cfg.Server.ServiceID, cfg.Server.ServiceName, cfg.Server.Port)
 	err = singleton.RegisterWithConsul(cfg.Server.ServiceID, cfg.Server.ServiceName, cfg.Server.Port)
 	if err != nil {
 		log.Fatalf("Lỗi đăng ký Consul: %v", err)
